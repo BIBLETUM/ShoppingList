@@ -1,21 +1,13 @@
 package com.example.shoppinglist.presentation
 
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.ListAdapter
 import com.example.shoppinglist.R
 import com.example.shoppinglist.domain.ShopItem
 
-class ShopListAdapter() : RecyclerView.Adapter<ShopListAdapter.ShopItemViewHolder>() {
-
-    var shopList = listOf<ShopItem>()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
+class ShopListAdapter() :
+    ListAdapter<ShopItem, ShopItemViewHolder>(ShopItemDiffCallback()) {
 
     var onItemLongClickListener: ((ShopItem) -> Unit)? = null
     var onItemClickListener: ((ShopItem) -> Unit)? = null
@@ -35,12 +27,12 @@ class ShopListAdapter() : RecyclerView.Adapter<ShopListAdapter.ShopItemViewHolde
     }
 
     override fun onBindViewHolder(holder: ShopItemViewHolder, position: Int) {
-        val shopItem = shopList[position]
+        val shopItem = getItem(position)
         with(holder) {
             tv_name.text = shopItem.name
             tv_count.text = shopItem.amount.toString()
 
-            itemView.setOnClickListener{
+            itemView.setOnClickListener {
                 onItemClickListener?.invoke(shopItem)
             }
 
@@ -52,20 +44,11 @@ class ShopListAdapter() : RecyclerView.Adapter<ShopListAdapter.ShopItemViewHolde
     }
 
     override fun getItemViewType(position: Int): Int {
-        val shopItem = shopList[position]
+        val shopItem = getItem(position)
         return when (shopItem.enabled) {
             true -> VIEW_TYPE_ENABLED
             false -> VIEW_TYPE_DISABLED
         }
-    }
-
-    override fun getItemCount(): Int {
-        return shopList.size
-    }
-
-    class ShopItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tv_name = itemView.findViewById<TextView>(R.id.tv_name)
-        val tv_count = itemView.findViewById<TextView>(R.id.tv_count)
     }
 
     companion object {
