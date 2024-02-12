@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shoppinglist.R
+import com.example.shoppinglist.domain.ShopItem
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
@@ -50,7 +51,12 @@ class MainActivity : AppCompatActivity() {
             mainViewModel.changeEnableState(it)
         }
         shopListAdapter.onItemClickListener = {
-            Log.d("Aoba", it.toString())
+            val intent = ShopItemActivity.newIntentChangeItem(this, it.id)
+            startActivity(intent)
+        }
+        button_add_shop_item.setOnClickListener{
+            val intent = ShopItemActivity.newIntentAddItem(this)
+            startActivity(intent)
         }
 
         val callBack = object :
