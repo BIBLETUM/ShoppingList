@@ -1,49 +1,69 @@
 package com.example.shoppinglist.presentation
 
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
+import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shoppinglist.R
-import com.example.shoppinglist.domain.ShopItem
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ShopItemFragment.OnSaveButtonClickListener {
 
     private lateinit var mainViewModel: MainViewModel
     private lateinit var shopListAdapter: ShopListAdapter
-    private lateinit var rv_shop_list: RecyclerView
-    private lateinit var button_add_shop_item: FloatingActionButton
+    private lateinit var rvShopList: RecyclerView
+    private lateinit var buttonAddShopItem: FloatingActionButton
+
+    private var shopItemContainer: FragmentContainerView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        shopItemContainer = findViewById(R.id.shop_item_container)
 
         initViews()
         setUpListeners()
 
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        mainViewModel.shopList.observe(this, Observer {
+        mainViewModel.shopList.observe(this)  {
             shopListAdapter.submitList(it)
-        })
+        }
+    }
+
+    private fun fragmentWork(shopItemId: Int?) {
+        supportFragmentManager.popBackStack()
+        val fragment = if (shopItemId == null) {
+            ShopItemFragment.newInstanceAddItem()
+        } else {
+            ShopItemFragment.newInstanceChangeItem(shopItemId)
+        }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.shop_item_container, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun initViews() {
-        rv_shop_list = findViewById(R.id.rv_shop_list)
-        button_add_shop_item = findViewById(R.id.button_add_shop_item)
-        rv_shop_list.recycledViewPool.setMaxRecycledViews(
+        rvShopList = findViewById(R.id.rv_shop_list)
+        buttonAddShopItem = findViewById(R.id.button_add_shop_item)
+        rvShopList.recycledViewPool.setMaxRecycledViews(
             ShopListAdapter.VIEW_TYPE_ENABLED,
             ShopListAdapter.POOL_MAX_SIZE
         )
-        rv_shop_list.recycledViewPool.setMaxRecycledViews(
+        rvShopList.recycledViewPool.setMaxRecycledViews(
             ShopListAdapter.VIEW_TYPE_DISABLED,
             ShopListAdapter.POOL_MAX_SIZE
         )
         shopListAdapter = ShopListAdapter()
-        rv_shop_list.adapter = shopListAdapter
+        rvShopList.adapter = shopListAdapter
+    }
+
+    override fun onSaveButtonClick() {
+        supportFragmentManager.popBackStack()
+        Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show()
     }
 
     private fun setUpListeners() {
@@ -51,12 +71,20 @@ class MainActivity : AppCompatActivity() {
             mainViewModel.changeEnableState(it)
         }
         shopListAdapter.onItemClickListener = {
-            val intent = ShopItemActivity.newIntentChangeItem(this, it.id)
-            startActivity(intent)
+            if (shopItemContainer == null) {
+                val intent = ShopItemActivity.newIntentChangeItem(this, it.id)
+                startActivity(intent)
+            } else {
+                fragmentWork(it.id)
+            }
         }
-        button_add_shop_item.setOnClickListener{
-            val intent = ShopItemActivity.newIntentAddItem(this)
-            startActivity(intent)
+        buttonAddShopItem.setOnClickListener {
+            if (shopItemContainer == null) {
+                val intent = ShopItemActivity.newIntentAddItem(this)
+                startActivity(intent)
+            } else {
+                fragmentWork(null)
+            }
         }
 
         val callBack = object :
@@ -75,6 +103,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         val itemTouchHelper = ItemTouchHelper(callBack)
-        itemTouchHelper.attachToRecyclerView(rv_shop_list)
+        itemTouchHelper.attachToRecyclerView(rvShopList)
     }
 }

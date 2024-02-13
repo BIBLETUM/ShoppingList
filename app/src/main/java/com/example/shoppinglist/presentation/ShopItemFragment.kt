@@ -1,8 +1,8 @@
 package com.example.shoppinglist.presentation
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +19,8 @@ class ShopItemFragment : Fragment() {
 
     private lateinit var shopItemViewModel: ShopItemViewModel
 
+    private lateinit var onSaveButtonClickListener: OnSaveButtonClickListener
+
     private lateinit var tilName: TextInputLayout
     private lateinit var tilCount: TextInputLayout
     private lateinit var etName: TextInputEditText
@@ -28,6 +30,19 @@ class ShopItemFragment : Fragment() {
     private var screenMode: String = MODE_UNKNOWN
     private var shopItemId: Int = ShopItem.UNDEFINED_ID
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is OnSaveButtonClickListener){
+            onSaveButtonClickListener = context
+        } else {
+            throw RuntimeException("Activity must implement OnSaveButtonClickListener")
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        parseParams()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,21 +52,15 @@ class ShopItemFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_shop_item, container, false)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        parseParams()
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         shopItemViewModel = ViewModelProvider(this)[ShopItemViewModel::class.java]
         initViews(view)
-
+        validateTexts()
         when (screenMode) {
             MODE_ADD -> launchAddMode()
             MODE_EDIT -> launchEditMode()
         }
-        validateTexts()
         checkShouldCloseScreen()
     }
 
@@ -78,7 +87,8 @@ class ShopItemFragment : Fragment() {
 
     private fun checkShouldCloseScreen() {
         shopItemViewModel.shouldCloseScreen.observe(viewLifecycleOwner) {
-            activity?.finish()
+            activity?.onBackPressedDispatcher?.onBackPressed()
+            onSaveButtonClickListener.onSaveButtonClick()
         }
     }
 
@@ -159,4 +169,7 @@ class ShopItemFragment : Fragment() {
         }
     }
 
+    interface OnSaveButtonClickListener {
+        fun onSaveButtonClick()
+    }
 }
