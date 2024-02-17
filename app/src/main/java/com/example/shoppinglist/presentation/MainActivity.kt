@@ -1,5 +1,6 @@
 package com.example.shoppinglist.presentation
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -8,21 +9,22 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shoppinglist.R
+import com.example.shoppinglist.databinding.ActivityMainBinding
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity(), ShopItemFragment.OnSaveButtonClickListener {
 
+    private lateinit var binding: ActivityMainBinding
+
     private lateinit var mainViewModel: MainViewModel
     private lateinit var shopListAdapter: ShopListAdapter
-    private lateinit var rvShopList: RecyclerView
-    private lateinit var buttonAddShopItem: FloatingActionButton
-
-    private var shopItemContainer: FragmentContainerView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        shopItemContainer = findViewById(R.id.shop_item_container)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         initViews()
         setUpListeners()
@@ -47,18 +49,16 @@ class MainActivity : AppCompatActivity(), ShopItemFragment.OnSaveButtonClickList
     }
 
     private fun initViews() {
-        rvShopList = findViewById(R.id.rv_shop_list)
-        buttonAddShopItem = findViewById(R.id.button_add_shop_item)
-        rvShopList.recycledViewPool.setMaxRecycledViews(
+        binding.rvShopList.recycledViewPool.setMaxRecycledViews(
             ShopListAdapter.VIEW_TYPE_ENABLED,
             ShopListAdapter.POOL_MAX_SIZE
         )
-        rvShopList.recycledViewPool.setMaxRecycledViews(
+        binding.rvShopList.recycledViewPool.setMaxRecycledViews(
             ShopListAdapter.VIEW_TYPE_DISABLED,
             ShopListAdapter.POOL_MAX_SIZE
         )
         shopListAdapter = ShopListAdapter()
-        rvShopList.adapter = shopListAdapter
+        binding.rvShopList.adapter = shopListAdapter
     }
 
     override fun onSaveButtonClick() {
@@ -71,15 +71,15 @@ class MainActivity : AppCompatActivity(), ShopItemFragment.OnSaveButtonClickList
             mainViewModel.changeEnableState(it)
         }
         shopListAdapter.onItemClickListener = {
-            if (shopItemContainer == null) {
+            if (binding.shopItemContainer == null) {
                 val intent = ShopItemActivity.newIntentChangeItem(this, it.id)
                 startActivity(intent)
             } else {
                 fragmentWork(it.id)
             }
         }
-        buttonAddShopItem.setOnClickListener {
-            if (shopItemContainer == null) {
+        binding.buttonAddShopItem.setOnClickListener {
+            if (binding.shopItemContainer == null) {
                 val intent = ShopItemActivity.newIntentAddItem(this)
                 startActivity(intent)
             } else {
@@ -103,6 +103,6 @@ class MainActivity : AppCompatActivity(), ShopItemFragment.OnSaveButtonClickList
             }
         }
         val itemTouchHelper = ItemTouchHelper(callBack)
-        itemTouchHelper.attachToRecyclerView(rvShopList)
+        itemTouchHelper.attachToRecyclerView(binding.rvShopList)
     }
 }
