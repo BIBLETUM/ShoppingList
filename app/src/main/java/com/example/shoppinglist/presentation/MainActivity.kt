@@ -11,15 +11,25 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shoppinglist.R
 import com.example.shoppinglist.databinding.ActivityMainBinding
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), ShopItemFragment.OnSaveButtonClickListener {
 
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var mainViewModel: MainViewModel
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    private val component by lazy {
+        (application as ShoppingListApp).component
+    }
+
     private lateinit var shopListAdapter: ShopListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        component.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -29,7 +39,7 @@ class MainActivity : AppCompatActivity(), ShopItemFragment.OnSaveButtonClickList
         initViews()
         setUpListeners()
 
-        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        mainViewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
         mainViewModel.shopList.observe(this)  {
             shopListAdapter.submitList(it)
         }
